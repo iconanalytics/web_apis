@@ -19,6 +19,7 @@ def find_value_of_key(entry,key,start_index):  #function for find the value in "
 my_ig = 'acuteanalytica'  #my login account info
 my_ig_full_name = "Acute Analytica"
 
+
 chrome_options = webdriver.ChromeOptions()
 chrome_options.add_argument('user-data-dir=C:\\Users\\charles.fawole\\AppData\\Local\\Google\\Chrome\\User Data\\Default') #use my browser cookies to log into instagram
 #chrome_options.add_argument("--window-size=1920,1080")
@@ -26,14 +27,26 @@ chrome_options.add_argument('user-data-dir=C:\\Users\\charles.fawole\\AppData\\L
 
 driver = webdriver.Chrome(options=chrome_options)  # Optional argument, if not specified will search path.
 
-tag_to_search = 'poodle'  #instagram hastag to search for
+#tag_to_search = 'poodle'#'poodle'  #instagram hastag to search for https://www.instagram.com/explore/tags/toypoodle/
+tag_to_search = 'minipoodle'
+tag_to_search = 'minipoodle'
+tag_to_search = 'poodlesofinstagram'
+tag_to_search = 'standardpoodle'
+tag_to_search = 'poodle'
 driver.get('https://www.instagram.com/explore/tags/{}/'.format(tag_to_search))
 
 
 dbase = MysqlDatabase(db='poodle_instagram_pages')
 db_table = 'poodle_pages'
 
+def scroll_page():
+    print("scrolling page")
+    time.sleep(15+random.random()*6)
+    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") #scoll probaly causes overlap in scraped record. Not scolling enough, it seems
 
+#for i in range(1000):
+    #scroll_page()
+    #print(i)
 def log_ig_info():
 
     page_source = (driver.page_source)
@@ -59,8 +72,15 @@ def log_ig_info():
         shortcode_index = shortcode_index + 1
 
 
+    seeing_user_again_index = 0  #counter to see if we are seeing known users again and again in the database
+
     for ig_shortcode in ig_shortcodes:
-        ig_post = requests.get("https://www.instagram.com/p/{}/".format(ig_shortcode))
+
+        try:
+            ig_post = requests.get("https://www.instagram.com/p/{}/".format(ig_shortcode))
+        except Exception: #if we cannot connect, continue. Not the most elegant solution
+            print("Error: Cannot connect to IG")
+            continue
         ig_post = str(ig_post.content)
 
         matches =  (re.finditer("username", ig_post))
@@ -86,11 +106,20 @@ def log_ig_info():
             ig_user = (ig_post[first_quote_index:second_quote_index])
 
         if (dbase.entry_exists(db_table,'ig_user',ig_user)): # if we know of this user already
-            print("KNOWN USER FOUND AGAIN")
+            print("KNOWN USER FOUND AGAIN {} shortcode {}".format(ig_user, ig_shortcode))
+            time.sleep(7)
+            seeing_user_again_index = seeing_user_again_index + 1
+            if seeing_user_again_index == 5: #if we see 5 diffent pages that we have seen before, scroll IG result page
+                for j in range(1000):
+                    scroll_page()
             continue
+        else:
+            seeing_user_again_index = 0
 
         ig_user_page = "https://www.instagram.com/{}/".format(ig_user)
         ig_user_page = requests.get(ig_user_page)
+        print("sleeping for 10s on line 113")
+        time.sleep(10)
         ig_user_page = str(ig_user_page.content)
 
         find_results=find_value_of_key(ig_user_page, "\"full_name\":",0)
@@ -112,12 +141,17 @@ def log_ig_info():
         if (ig_user_page_full_name == my_ig_full_name):
             ig_user_page_full_name=find_value_of_key(ig_user_page, "\"full_name\":",marker)[0]
 
-        if (ig_user_page_full_name == 'en'):  #en is instagrams signature of scrape blocking
-            print("IG blocked scraping")
-            driver.quit()
-            exit()
-
         ig_user_page_bio=find_value_of_key(ig_user_page, "\"user\":{\"biography\":",0)[0]
+
+        if (ig_user_page_full_name == 'en' and ig_user_page_bio=='en' ):  #en is instagrams signature of scrape blocking
+            print("IG blocked scraping, will sleep for 60 minutes")
+            import datetime
+            print(datetime.datetime.now())
+            time.sleep(60*60)
+            #driver.quit()
+            #exit()
+
+        
 
         #print(ig_user_page_full_name)
 
@@ -142,18 +176,17 @@ def log_ig_info():
         dbase.run_sql(sql)
 
 
-        with open('dump.txt','a') as loc_file:
-            loc_file.write(ig_info+"\r\n")
+        #with open('dump.txt','a') as loc_file:
+            #loc_file.write(ig_info+"\r\n")
+        time.sleep(10+random.random()*10) #random wait
 
-        time.sleep(6+random.random()*6) #random wait
 
 
 while True:  #this is for scrolling through the search result post pages
     log_ig_info()
-    time.sleep(6+random.random()*6)
-    driver.execute_script("window.scrollTo(0, document.body.scrollHeight);") #scoll probaly causes overlap in scraped record. Not scolling enough, it seems
-
+    scroll_page()
 #driver.quit()
+ 
 
 
 

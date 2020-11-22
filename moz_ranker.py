@@ -39,7 +39,8 @@ class MozRanker:
             self.domain_authority = domain_authority_json['pda']
         
         except KeyError:  # the api throws error sometimes, do not know why, catch it
-            self.domain_authority = -1
+            raise KeyError
+            #self.domain_authority = -1
 
         #print (type(self.domain_authority))
 

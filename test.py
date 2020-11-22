@@ -16,4 +16,10 @@ driver = webdriver.Chrome(options=chrome_options)  # Optional argument, if not s
 #driver.get('http://www.google.com/')
 
 
-driver.get('https://www.instagram.com/explore/tags/poodle/')
+driver.get('https://marketplace.akc.org/breeder/mickey-kern-43400/poodle/234178')
+
+page_source = (driver.page_source)
+
+f = open('test_akc3.txt','w')
+f.write("hello")
+f.close()

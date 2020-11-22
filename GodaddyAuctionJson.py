@@ -6,6 +6,11 @@ from InternetWayBack import InternetWayBack
 from moz_ranker import MozRanker
 import os.path
 
+
+"""
+To work on the latest list of auctions, run godaddy_auction_ftp.py first
+"""
+
 class GodaddyAuctionJson:
 
     
@@ -21,8 +26,12 @@ class GodaddyAuctionJson:
         count = 0
         item_index = 0  #index of one of the key of interest
 
-        self.trove_file = "trove_domain_for_boat2.txt"
-        keywords = ["BOAT", "SAIL", "MARIN", "NAUTICA"]
+        self.trove_file = "trove_domain_for_dog.txt"
+        #keywords = ["BOAT", "SAIL", "MARIN", "NAUTICA","ROWING"] #for boatelectric
+        #keywords = ["CLINIC","DOCTOR","NURS","HEALTH","MEDIC","HOSPITAL"] 
+        keywords = ["DOG","POODLE","PUP","CANINE","WHELP","POOCH","MUTT","ROVER"]
+        keywords =['POODLE']
+
 
         self.done_domains = self.init_done_domains(self.trove_file)  # what domains do we know of already
 
@@ -57,10 +66,15 @@ class GodaddyAuctionJson:
                             ranker=MozRanker(test_domain)
                             domain_authority = ranker.domain_authority
 
+                            print("domain authority is : "+str(domain_authority))
+
                             f = open(self.trove_file, "a")
-                            f.write(str(count)+";"+str(domain_authority)+";"+auction_interest_values[4]+";"+auction_interest_values[2]+";"+test_domain+";"+
+                            f.write(str(count)+";"+str(domain_authority)+";"+auction_interest_values[4]+";"+
+                            auction_interest_values[2]+";"+
+                            test_domain+";"+
                             archiveddomain.oldest_archive_date()+";"+
-                            archiveddomain.newest_archive_date()+"\r")
+                            archiveddomain.newest_archive_date()+";"+
+                            str(archiveddomain.number_of_captures())+"\r")
                             f.close()
                 #end of code
 

@@ -1,4 +1,5 @@
 import pymysql
+import pymysql.err
 
 
 class MysqlDatabase:
@@ -15,9 +16,13 @@ class MysqlDatabase:
         with self.connection.cursor() as cursor:
             # Create a new record
             cursor.execute(sql)
-            self.connection.commit()
-            query_result = cursor.fetchone()
-            print(query_result)
+            try:
+                self.connection.commit()
+            except pymysql.err.IntegrityError:
+                print("attempt was made to enter duplicate primary key")
+
+            query_result = cursor.fetchall()
+            #print(query_result)
             return query_result
 
     
@@ -26,7 +31,7 @@ class MysqlDatabase:
         with self.connection.cursor() as cursor:
             # Create a new record
             sql = "select * from  {};".format(table)
-            self.run_sql(sql)
+            return self.run_sql(sql)
 
     def entry_exists(self,table,col,entry):
         sql = "SELECT ig_user from {} where {} = '{}';".format(table,col,entry)
@@ -51,3 +56,4 @@ def main():
     
     print(dbase.entry_exists('poodle_pages','ig_user','w'))
     
+#main()

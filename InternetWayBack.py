@@ -17,6 +17,7 @@ class InternetWayBack:
         day = datetime.datetime.now().day
 
         today_date= year+month+day
+        self.domain_name=domain_name
 
         self.newest_archive_snapshot_info = self.archive_snap(domain_name, epoch=today_date)
 
@@ -50,13 +51,18 @@ class InternetWayBack:
         except Exception:
             return "-1"
 
-"""
+    def number_of_captures(self):
+        captures_json = requests.get("https://web.archive.org/cdx/search?url={}/*&output=json".format(self.domain_name))
+        captures_json = json.loads(captures_json.content)
+        return(len(captures_json)-1) # minus 1 to account for headers
+
+
 def main():
-        iwb = InternetWayBack("boatelectric.com")
-        print (iwb.archive_exist())
-        print(iwb.oldest_archive_date())
-        print(iwb.newest_archive_date())
+        iwb = InternetWayBack("wikipedia.com")
+        #print (iwb.archive_exist())
+        #print(iwb.oldest_archive_date())
+        #print(iwb.newest_archive_date())
+        print(iwb.number_of_captures())
 
 main()
 
-"""
